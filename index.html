@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- At a certain point we need to do 2 HTTP calls so I added axios here -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- Include Tailwind CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header class="text-center py-4 w-full">
+      <h1 class="text-2xl font-bold">Value.IO Apple Pay Demo App</h1>
+    </header>
+
+    <div
+      class="p-6 w-full max-w-xl mx-auto bg-white rounded-xl shadow-md flex items-center space-x-4"
+    >
+      <form class="w-full">
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="username"
+            >Username</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="username"
+            type="text"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="password"
+            >API Key</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="password"
+            type="password"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="base_url"
+            >Base URL</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="base_url"
+            type="text"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="destination"
+            >Destination</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="destination"
+            type="text"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="domain_name"
+            >Domain Name</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="domain_name"
+            type="text"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="display_name"
+            >Display Name</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="display_name"
+            type="text"
+            value="Merchant Name Goes Here"
+          />
+        </div>
+        <div class="mb-4 w-full">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="amount"
+            >Amount</label
+          >
+          <input
+            class="shadow appearance-none border w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="amount"
+            type="text"
+            value="10.00"
+          />
+        </div>
+        <div class="flex items-center justify-end">
+          <!-- Modified: Changed justify-between to justify-end -->
+          <div
+            id="ckoApplePay"
+            class="apple-pay-button apple-pay-button-text-buy"
+            lang="en"
+          ></div>
+        </div>
+        <div
+          id="alert-toast"
+          class="right-0 m-6 p-4 text-white rounded-lg shadow-lg opacity-0 transition-opacity duration-500 ease-in-out"
+        >
+          <p id="alert-message">This is an alert message.</p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Adding an error message to show in case Apple Pay is not possible -->
+    <p style="display: none" id="ckoApplePayError">
+      ApplePay is not available in this environment.
+    </p>
+
+    <script src="page.js"></script>
+    <script src="valueio.js"></script>
+  </body>
+</html>
