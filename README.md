@@ -22,6 +22,7 @@ Convert to .pem file
 
 > openssl x509 -inform der -in payment_cert.cer -out payment_cert.pem
 
+# You will need to verify your Apple Pay Setup at your new domain on your dev server.
 
 # To run and validate locally - change
 
