@@ -102,9 +102,28 @@ var applePayController = (function (uiController) {
         }
       )
       .then(function (response) {
-        callback(response.data.data.response);
+        if (
+          response.data.data.response.statusCode <= 200 ||
+          response.data.data.response.statusCode >= 300
+        ) {
+          showAlert(
+            "Error Validating: " +
+              response.data.data.response.statusCode +
+              " " +
+              response.data.data.response.statusMessage,
+            5000,
+            true
+          );
+          console.error(
+            "Error validating Apple Pay session:",
+            response.data.data.response.statusMessage
+          );
+        } else {
+          callback(response.data.data.response);
+        }
       })
       .catch(function (error) {
+        showAlert("Error Validating: " + error, 5000, true);
         console.error("Error validating Apple Pay session:", error);
         callback(null);
       });
