@@ -206,6 +206,7 @@ var applePayController = (function (uiController) {
             country: getCountryCode(payment.billingContact.country),
             email: payment.billingContact.email,
             phone: payment.billingContact.phone,
+            vaulted: true,
           },
         },
         {
