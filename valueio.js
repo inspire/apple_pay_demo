@@ -181,6 +181,7 @@ var applePayController = (function (uiController) {
       address2 = payment.billingContact.addressLines[1];
     }
 
+    var test = config.get("test_transaction");
     axios
       .post(
         config.get("base_url") + "/v1/payments",
@@ -188,7 +189,10 @@ var applePayController = (function (uiController) {
           payment: {
             amount: config.get("amount"),
             destination: config.get("destination"),
-            test: !config.get("base_url").includes("api.value.io"),
+            test: test,
+            gateway_options: {
+              domain: config.get("domain_name"),
+            },
           },
           credit_card: {
             apple_pay_token: payment.token,

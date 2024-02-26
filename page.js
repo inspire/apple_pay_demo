@@ -1,27 +1,30 @@
 // Save input fields to local storage
 function saveInputsToLocalStorage() {
-  const inputs = document.querySelectorAll("input");
+  const inputs = document.querySelectorAll("input, select"); // Include select boxes
   inputs.forEach((input) => {
-    localStorage.setItem(input.id, input.value);
+    if (input.type === "checkbox") {
+      localStorage.setItem(input.id, input.checked ? "true" : "false");
+    } else {
+      localStorage.setItem(input.id, input.value);
+    }
   });
 }
 
 // Load input fields from local storage
 function loadInputsFromLocalStorage() {
-  const inputs = document.querySelectorAll("input");
+  const inputs = document.querySelectorAll("input, select"); // Include select boxes
   inputs.forEach((input) => {
     const savedValue = localStorage.getItem(input.id);
-    if (savedValue) {
-      input.value = savedValue;
+    if (savedValue !== null) {
+      if (input.type === "checkbox") {
+        input.checked = savedValue === "true";
+      } else {
+        input.value = savedValue;
+      }
     }
   });
   saveInputsToConfig();
 }
-
-// Save inputs to local storage when they lose focus
-document.querySelectorAll("input").forEach((input) => {
-  input.addEventListener("blur", saveInputsToLocalStorage);
-});
 
 // Load inputs from local storage when the page loads
 window.addEventListener("load", loadInputsFromLocalStorage);
@@ -42,11 +45,24 @@ function saveInputsToConfig() {
   inputs.forEach((input) => {
     config.set(input.id, input.value);
   });
+  saveInputsToLocalStorage();
 }
 
 // Save inputs to config object when they lose focus
-document.querySelectorAll("input").forEach((input) => {
-  input.addEventListener("blur", saveInputsToConfig);
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("input, select").forEach((input) => {
+    if (input.type === "checkbox" || input.type === "select-one") {
+      input.addEventListener("change", saveInputsToConfig);
+    } else {
+      input.addEventListener("blur", saveInputsToConfig);
+    }
+  });
+
+  document
+    .getElementById("test_transaction")
+    .addEventListener("change", function () {
+      saveInputsToConfig();
+    });
 });
 
 function showAlert(message, duration, error = false) {
