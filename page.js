@@ -39,11 +39,14 @@ let config = {
   },
 };
 
-// Save input fields to config object
 function saveInputsToConfig() {
-  const inputs = document.querySelectorAll("input");
+  const inputs = document.querySelectorAll("input, select");
   inputs.forEach((input) => {
-    config.set(input.id, input.value);
+    if (input.type === "checkbox") {
+      config.set(input.id, input.checked ? "true" : "false");
+    } else {
+      config.set(input.id, input.value);
+    }
   });
   saveInputsToLocalStorage();
 }

@@ -182,18 +182,12 @@ var applePayController = (function (uiController) {
     }
 
     var test = config.get("test_transaction");
+
+    // First, create a credit card
     axios
       .post(
-        config.get("base_url") + "/v1/payments",
+        config.get("base_url") + "/v1/credit_cards",
         {
-          payment: {
-            amount: config.get("amount"),
-            destination: config.get("destination"),
-            test: test,
-            gateway_options: {
-              domain: config.get("domain_name"),
-            },
-          },
           credit_card: {
             apple_pay_token: payment.token,
             first_name: payment.billingContact.givenName,
@@ -216,9 +210,35 @@ var applePayController = (function (uiController) {
           },
         }
       )
-      .then(function (response) {
-        // Response here is the value.io payments response
-        // do what you want here
+      .then(function (creditCardResponse) {
+        // Extract the credit card identifier from the response
+        var creditCardIdentifier =
+          creditCardResponse.data.data.credit_card.identifier;
+
+        // Now make the payment using the credit card identifier
+        return axios.post(
+          config.get("base_url") + "/v1/payments",
+          {
+            payment: {
+              amount: config.get("amount"),
+              credit_card: creditCardIdentifier,
+              destination: config.get("destination"),
+              test: test,
+              gateway_options: {
+                domain: config.get("domain_name"),
+              },
+            },
+          },
+          {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              Authorization: generateBasicAuthHeader(),
+            },
+          }
+        );
+      })
+      .then(function (paymentResponse) {
+        // Payment successful
         callback({ approved: true });
         showAlert("Payment successful.", 5000);
       })

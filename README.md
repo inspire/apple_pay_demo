@@ -33,3 +33,7 @@ to
 <script src="recurring.js"></script>
 
 > cd server && bundle exec ruby server.rb
+
+# Other notes
+- Make sure you care connected via SSL ( use ngrok )
+- Make sure you have added and verified your domain 

@@ -6,6 +6,7 @@ require 'openssl'
 require 'logger'
 require 'gala'
 require 'base64'
+require 'pry'
 
 
 get '/hello' do
@@ -80,6 +81,7 @@ end
 post '/v1/payments' do
   data = JSON.parse(request.body.read)
   token = data['token']
+  logger.info token
 
   # Load your merchant private key and certificate
   private_key = OpenSSL::PKey::EC.new(File.read('./keys/payment_private_key.pem'))
