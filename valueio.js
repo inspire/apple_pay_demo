@@ -213,7 +213,7 @@ var applePayController = (function (uiController) {
       .then(function (creditCardResponse) {
         // Extract the credit card identifier from the response
         var creditCardIdentifier =
-          creditCardResponse.data.data.credit_card.identifier;
+          creditCardResponse.data.data.credit_card.credit_card_token_single_use;
 
         // Now make the payment using the credit card identifier
         return axios.post(
