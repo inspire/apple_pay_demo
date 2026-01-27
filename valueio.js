@@ -86,13 +86,15 @@ var applePayController = (function (uiController) {
   };
 
   var _validateApplePaySession = function (appleUrl, callback) {
+    var domainName = window.location.hostname;
     var postData = {
       destination_identifier: config.get("destination"),
-      domain_name: config.get("domain_name"),
+      domain_name: domainName,
       display_name: config.get("display_name"),
       apple_url: appleUrl,
     };
 
+    console.log("[ApplePay] Using domain from window.location.hostname:", domainName);
     console.log("[ApplePay] Validating session with URL:", appleUrl);
     console.log("[ApplePay] Validate session postData:", JSON.stringify(postData, null, 2));
 
@@ -164,8 +166,14 @@ var applePayController = (function (uiController) {
     appleSession.oncancel = function (event) {
       console.log("[ApplePay] oncancel fired");
       console.log("[ApplePay] Cancel event:", JSON.stringify(event, null, 2));
-      console.log("[ApplePay] Cancel stack trace:", new Error().stack);
-      showAlert("User cancelled.", 5000, true);
+      var pageDomain = window.location.hostname;
+      var configDomain = config.get("domain_name");
+      if (pageDomain !== configDomain) {
+        console.error("[ApplePay] DOMAIN MISMATCH DETECTED - page domain: '" + pageDomain + "', config domain: '" + configDomain + "'. Apple Pay requires these to match.");
+        showAlert("Domain mismatch: page is on '" + pageDomain + "' but Apple Pay is configured for '" + configDomain + "'. These must match.", 10000, true);
+      } else {
+        showAlert("Apple Pay session cancelled.", 5000, true);
+      }
     };
 
     // appleSession.onpaymentmethodselected = function (event) {
@@ -252,24 +260,39 @@ var applePayController = (function (uiController) {
         }
       )
       .then(function (creditCardResponse) {
+        console.log("[ApplePay] Credit card creation response:", JSON.stringify(creditCardResponse.data, null, 2));
+
         // Extract the credit card identifier from the response
-        var creditCardIdentifier =
-          creditCardResponse.data.data.credit_card.credit_card_token_single_use;
+        var creditCardData = creditCardResponse.data.data.credit_card;
+        console.log("[ApplePay] Credit card data:", JSON.stringify(creditCardData, null, 2));
+
+        var creditCardIdentifier = creditCardData.credit_card_token_single_use;
+        console.log("[ApplePay] credit_card_token_single_use:", creditCardIdentifier);
+
+        if (!creditCardIdentifier) {
+          console.error("[ApplePay] credit_card_token_single_use is missing! Available keys:", Object.keys(creditCardData));
+          // Try common alternative field names
+          creditCardIdentifier = creditCardData.token || creditCardData.credit_card_token || creditCardData.id;
+          console.log("[ApplePay] Fallback token value:", creditCardIdentifier);
+        }
+
+        var paymentPayload = {
+          payment: {
+            amount: config.get("amount"),
+            credit_card: creditCardIdentifier,
+            destination: config.get("destination"),
+            test: test,
+            gateway_options: {
+              domain: window.location.hostname,
+            },
+          },
+        };
+        console.log("[ApplePay] Payment request payload:", JSON.stringify(paymentPayload, null, 2));
 
         // Now make the payment using the credit card identifier
         return axios.post(
           config.get("base_url") + "/v1/payments",
-          {
-            payment: {
-              amount: config.get("amount"),
-              credit_card: creditCardIdentifier,
-              destination: config.get("destination"),
-              test: test,
-              gateway_options: {
-                domain: config.get("domain_name"),
-              },
-            },
-          },
+          paymentPayload,
           {
             headers: {
               "Access-Control-Allow-Origin": "*",
