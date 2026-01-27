@@ -49,7 +49,7 @@ var applePayController = (function (uiController) {
           "supportsDebit",
         ],
         total: {
-          label: config.display_name,
+          label: config.get("display_name"),
           amount: config.get("amount"),
           type: "final",
         },
