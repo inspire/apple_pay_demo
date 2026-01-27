@@ -77,9 +77,12 @@ var applePayController = (function (uiController) {
       },
     };
 
+    console.log("[ApplePay] Session config:", JSON.stringify(applePaySessionConfig, null, 2));
     var applePaySession = new ApplePaySession(14, applePaySessionConfig);
+    console.log("[ApplePay] ApplePaySession created (version 14)");
     _handleApplePayEvents(applePaySession);
     applePaySession.begin();
+    console.log("[ApplePay] applePaySession.begin() called");
   };
 
   var _validateApplePaySession = function (appleUrl, callback) {
@@ -89,6 +92,9 @@ var applePayController = (function (uiController) {
       display_name: config.get("display_name"),
       apple_url: appleUrl,
     };
+
+    console.log("[ApplePay] Validating session with URL:", appleUrl);
+    console.log("[ApplePay] Validate session postData:", JSON.stringify(postData, null, 2));
 
     axios
       .post(
@@ -102,8 +108,12 @@ var applePayController = (function (uiController) {
         }
       )
       .then(function (response) {
+        console.log("[ApplePay] Validate session raw response:", JSON.stringify(response.data, null, 2));
+        console.log("[ApplePay] Response statusCode:", response.data.data.response.statusCode);
+        console.log("[ApplePay] Response statusMessage:", response.data.data.response.statusMessage);
+
         if (
-          response.data.data.response.statusCode <= 200 ||
+          response.data.data.response.statusCode < 200 ||
           response.data.data.response.statusCode >= 300
         ) {
           showAlert(
@@ -115,30 +125,46 @@ var applePayController = (function (uiController) {
             true
           );
           console.error(
-            "Error validating Apple Pay session:",
+            "[ApplePay] Error validating Apple Pay session:",
             response.data.data.response.statusMessage
           );
         } else {
+          console.log("[ApplePay] Validation successful, merchant session body:",
+            JSON.stringify(response.data.data.response.body, null, 2));
           callback(response.data.data.response);
         }
       })
       .catch(function (error) {
         showAlert("Error Validating: " + error, 5000, true);
-        console.error("Error validating Apple Pay session:", error);
+        console.error("[ApplePay] Error validating Apple Pay session:", error);
+        console.error("[ApplePay] Error details:", error.response ? JSON.stringify(error.response.data, null, 2) : "No response data");
         callback(null);
       });
   };
 
   var _handleApplePayEvents = function (appleSession) {
     appleSession.onvalidatemerchant = function (event) {
+      console.log("[ApplePay] onvalidatemerchant fired, validationURL:", event.validationURL);
       _validateApplePaySession(event.validationURL, function (merchantSession) {
-        appleSession.completeMerchantValidation(merchantSession);
+        console.log("[ApplePay] About to call completeMerchantValidation");
+        console.log("[ApplePay] merchantSession is null?", merchantSession === null);
+        console.log("[ApplePay] merchantSession type:", typeof merchantSession);
+        if (merchantSession) {
+          console.log("[ApplePay] merchantSession value:", JSON.stringify(merchantSession, null, 2));
+        }
+        try {
+          appleSession.completeMerchantValidation(merchantSession);
+          console.log("[ApplePay] completeMerchantValidation called successfully");
+        } catch (e) {
+          console.error("[ApplePay] completeMerchantValidation threw error:", e);
+        }
       });
     };
 
     appleSession.oncancel = function (event) {
-      console.log("User cancelled Apple Pay session");
-      // Handle the cancellation here
+      console.log("[ApplePay] oncancel fired");
+      console.log("[ApplePay] Cancel event:", JSON.stringify(event, null, 2));
+      console.log("[ApplePay] Cancel stack trace:", new Error().stack);
       showAlert("User cancelled.", 5000, true);
     };
 
@@ -157,7 +183,22 @@ var applePayController = (function (uiController) {
     //   }
     // };
 
+    appleSession.onpaymentmethodselected = function (event) {
+      console.log("[ApplePay] onpaymentmethodselected fired:", JSON.stringify(event.paymentMethod, null, 2));
+      appleSession.completePaymentMethodSelection({
+        newTotal: {
+          label: config.get("display_name"),
+          amount: config.get("amount"),
+          type: "final",
+        },
+      });
+      console.log("[ApplePay] completePaymentMethodSelection called");
+    };
+
     appleSession.onpaymentauthorized = function (event) {
+      console.log("[ApplePay] onpaymentauthorized fired");
+      console.log("[ApplePay] Payment token:", JSON.stringify(event.payment.token, null, 2));
+      console.log("[ApplePay] Billing contact:", JSON.stringify(event.payment.billingContact, null, 2));
       processApplePayPayment(event.payment, function (response) {
         if (response.approved) {
           appleSession.completePayment(ApplePaySession.STATUS_SUCCESS);
